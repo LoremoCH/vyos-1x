@@ -63,6 +63,11 @@ protocols {
             address 192.0.2.10
             port 3323
         }
+        cache routinatorwithsourcce {
+            address 192.0.2.11
+            port 323
+            source 192.0.2.100
+        }
     }
     static {
         route 0.0.0.0/0 {

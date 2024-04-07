@@ -161,6 +161,52 @@ class TestProtocolsRPKI(VyOSUnitTestSHIM.TestCase):
             preference = peer_config['preference']
             self.assertIn(f'rpki cache {peer} {port} preference {preference}', frrconfig)
 
+    def test_rpki_source(self):
+        polling = '7200'
+        cache = {
+            '192.0.2.1' : {
+                'port' : '8080',
+                'preference' : '1'
+            },
+            '192.0.2.2' : {
+                'port' : '9090',
+                'source' : '192.0.2.0',
+                'preference' : '2'
+            },
+            '2001:db8::1' : {
+                'port' : '1234',
+                'preference' : '3'
+            },
+            '2001:db8::2' : {
+                'port' : '5678',
+                'source' : '2001:db8::',
+                'preference' : '4'
+            },
+        }
+
+        self.cli_set(base_path + ['polling-period', polling])
+        for cache_name, cache_config in cache.items():
+            self.cli_set(base_path + ['cache', cache_name, 'port', cache_config['port']])
+            self.cli_set(base_path + ['cache', cache_name, 'preference', cache_config['preference']])
+            if peer_config['source']:
+                self.cli_set(base_path + ['cache', cache_name, 'source', cache_config['source']])
+
+        # commit changes
+        self.cli_commit()
+
+        # Verify FRR configuration
+        frrconfig = self.getFRRconfig('rpki')
+        self.assertIn(f'rpki polling_period {polling}', frrconfig)
+
+        for cache_name, cache_config in cache.items():
+            port = cache_config['port']
+            preference = cache_config['preference']
+            if cache_config['source']:
+                source = cache_config['source']
+                self.assertIn(f'rpki cache {peer} {port} source {source} preference {preference}', frrconfig)
+            else:
+                self.assertIn(f'rpki cache {peer} {port} preference {preference}', frrconfig)
+
     def test_rpki_ssh(self):
         polling = '7200'
         cache = {
