@@ -4,10 +4,18 @@ rpki
 {% if cache is vyos_defined %}
 {%     for peer, peer_config in cache.items() %}
 {#         port is mandatory and preference uses a default value #}
-{%         if peer_config.ssh.username is vyos_defined %}
- rpki cache {{ peer | replace('_', '-') }} {{ peer_config.port }} {{ peer_config.ssh.username }} {{ peer_config.ssh.private_key_file }} {{ peer_config.ssh.public_key_file }} preference {{ peer_config.preference }}
+{%         if peer_config.source-address is vyos_defined %}
+{%             if peer_config.ssh.username is vyos_defined %}
+ rpki cache {{ peer | replace('_', '-') }} {{ peer_config.port }} {{ peer_config.ssh.username }} {{ peer_config.ssh.private_key_file }} {{ peer_config.ssh.public_key_file }} {{ peer_config.ssh.known_hosts_file }} source {{ peer_config.source-address }} preference {{ peer_config.preference }}
+{%             else %}
+ rpki cache {{ peer | replace('_', '-') }} {{ peer_config.port }} source {{ peer_config.source-address }} preference {{ peer_config.preference }}
+{%             endif %}
 {%         else %}
+{%             if peer_config.ssh.username is vyos_defined %}
+ rpki cache {{ peer | replace('_', '-') }} {{ peer_config.port }} {{ peer_config.ssh.username }} {{ peer_config.ssh.private_key_file }} {{ peer_config.ssh.public_key_file }} {{ peer_config.ssh.known_hosts_file }} preference {{ peer_config.preference }}
+{%             else %}
  rpki cache {{ peer | replace('_', '-') }} {{ peer_config.port }} preference {{ peer_config.preference }}
+{%             endif %}
 {%         endif %}
 {%     endfor %}
 {% endif %}
